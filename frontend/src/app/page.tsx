@@ -36,7 +36,8 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const res = await fetch("http://10.33.167.113:8000/api/v1/bot/chat", { // 👈 Fixed Endpoint
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -70,7 +71,8 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const res = await fetch("http://10.33.167.113:8000/api/v1/scan", { // 👈 Fixed Endpoint
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      const res = await fetch(`${baseURL}/api/v1/scan`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -269,7 +271,7 @@ export default function Home() {
         "Content-Type": "application/json"
       };
 
-      const resEmail = await fetch("http://10.33.167.113:8000/api/v1/automation/gmail/inbox", { headers: secureHeaders });
+      const resEmail = await fetch(`${baseURL}/api/v1/automation/gmail/inbox`, { headers: secureHeaders });  
       if (resEmail.ok) {
         const emailJson = await resEmail.json();
         if (prevHarmfulEmails.current !== 0 && emailJson.harmful_count > prevHarmfulEmails.current) {
@@ -279,7 +281,8 @@ export default function Home() {
         setGmailData(emailJson);
       }
       
-      const resSms = await fetch("http://10.33.167.113:8000/api/v1/automation/sms/logs", { headers: secureHeaders });
+      const resSms = await fetch(`${baseURL}/api/v1/automation/sms/logs`, { headers: secureHeaders });
+
       if (resSms.ok) {
         const smsJson = await resSms.json();
         if (prevHarmfulSms.current !== 0 && smsJson.harmful_count > prevHarmfulSms.current) {
@@ -289,17 +292,17 @@ export default function Home() {
         setSmsData(smsJson);
       }
 
-      const resSoar = await fetch("http://10.33.167.113:8000/api/v1/soar/blacklist", { headers: secureHeaders });
+      const resSoar = await fetch(`${baseURL}/api/v1/soar/blacklist`, { headers: secureHeaders });
       if (resSoar.ok) {
         const blacklistData = await resSoar.json();
         setSoarBlacklist(blacklistData);
         calculateSocAnalytics(blacklistData);
       }
       
-      const resHistory = await fetch("http://10.33.167.113:8000/api/v1/history/scans", { headers: secureHeaders });
+      const resHistory = await fetch(`${baseURL}/api/v1/history/scans`, { headers: secureHeaders });
       if (resHistory.ok) setScanHistory(await resHistory.json());
 
-      const resScore = await fetch("http://10.33.167.113:8000/api/v1/security-score", { headers: secureHeaders });
+      const resScore = await fetch(`${baseURL}/api/v1/security-score`, { headers: secureHeaders });
       if (resScore.ok) {
         const scoreJson = await resScore.json();
         setScoreData(scoreJson); 
@@ -314,7 +317,8 @@ export default function Home() {
   // 🔐 4. Secure Initial Security Score Trigger
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://10.33.167.113:8000/api/v1/security-score", {
+    const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+    fetch(`${baseURL}/api/v1/security-score`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then((res) => {
@@ -350,7 +354,7 @@ export default function Home() {
     setActiveReportId(incidentId);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://10.33.167.113:8000/api/v1/soar/report/${incidentId}`, {
+      const res = await fetch(`${baseURL}/api/v1/soar/report/${incidentId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -405,7 +409,7 @@ export default function Home() {
     setDisconnecting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://10.33.167.113:8000/api/v1/auth/gmail/disconnect", {
+      const res = await fetch(`${baseURL}/api/v1/auth/gmail/disconnect`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -427,7 +431,7 @@ export default function Home() {
   const handleConnectGmailAuthFlow = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://10.33.167.113:8000/api/v1/auth/google-login", {
+      const res = await fetch(`${baseURL}/api/v1/auth/google-login`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -444,7 +448,8 @@ export default function Home() {
     setIsScanning(true); setScanResult(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://10.33.167.113:8000/api/v1/scan", {
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      const res = await fetch(`${baseURL}/api/v1/scan`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -531,7 +536,8 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://10.33.167.113:8000/api/v1/bot/chat", {
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
