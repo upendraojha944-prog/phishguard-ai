@@ -35,21 +35,21 @@ export default function Home() {
     setIsScanning(true);
 
     try {
-      const token = localStorage.getItem("token"); // 🔐 Token extraction
-      const response = await fetch("http://localhost:8000/api/v1/bot/chat", {
+      const token = localStorage.getItem("token"); 
+      const res = await fetch("http://10.33.167.113:8000/api/v1/bot/chat", { // 👈 Fixed Endpoint
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // 👈 Token added
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify({ question: chatQuery }),
       });
       
-      if (!response.ok) {
+      if (!res.ok) { // 👈 Fixed: response ki jagah res kiya
          throw new Error("Backend connection failed.");
       }
       
-      const data = await response.json();
+      const data = await res.json(); // 👈 Fixed: response ki jagah res kiya
       setChatHistory((prev) => [
         ...prev,
         { sender: "bot", text: data.response || "No response generated from AI Core." },
@@ -69,17 +69,18 @@ export default function Home() {
     setBorderEffect("border-blue-500 animate-pulse");
 
     try {
-      const token = localStorage.getItem("token"); // 🔐 Token extraction
-      const response = await fetch("http://localhost:8000/api/v1/scan", {
+      const token = localStorage.getItem("token"); 
+      const res = await fetch("http://10.33.167.113:8000/api/v1/scan", { // 👈 Fixed Endpoint
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // 👈 Token added
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify({ url: urlInput }),
       });
 
-      const data = await response.json();
+      if (!res.ok) throw new Error("Scan failed");
+      const data = await res.json(); // 👈 Fixed: response ki jagah res kiya
       setScanResult(data);
 
       if (data.threat_index > 25) {
@@ -94,7 +95,6 @@ export default function Home() {
       setIsScanning(false);
     }
   };
-
   const [currentLang, setCurrentLang] = useState<"en" | "hi" | "hinglish">("en");
   const [ocrFile, setOcrFile] = useState<File | null>(null);
   const [isOcrScanning, setIsOcrScanning] = useState(false);
@@ -269,7 +269,7 @@ export default function Home() {
         "Content-Type": "application/json"
       };
 
-      const resEmail = await fetch("http://localhost:8000/api/v1/automation/gmail/inbox", { headers: secureHeaders });
+      const resEmail = await fetch("http://10.33.167.113:8000/api/v1/automation/gmail/inbox", { headers: secureHeaders });
       if (resEmail.ok) {
         const emailJson = await resEmail.json();
         if (prevHarmfulEmails.current !== 0 && emailJson.harmful_count > prevHarmfulEmails.current) {
@@ -279,7 +279,7 @@ export default function Home() {
         setGmailData(emailJson);
       }
       
-      const resSms = await fetch("http://localhost:8000/api/v1/automation/sms/logs", { headers: secureHeaders });
+      const resSms = await fetch("http://10.33.167.113:8000/api/v1/automation/sms/logs", { headers: secureHeaders });
       if (resSms.ok) {
         const smsJson = await resSms.json();
         if (prevHarmfulSms.current !== 0 && smsJson.harmful_count > prevHarmfulSms.current) {
@@ -289,17 +289,17 @@ export default function Home() {
         setSmsData(smsJson);
       }
 
-      const resSoar = await fetch("http://localhost:8000/api/v1/soar/blacklist", { headers: secureHeaders });
+      const resSoar = await fetch("http://10.33.167.113:8000/api/v1/soar/blacklist", { headers: secureHeaders });
       if (resSoar.ok) {
         const blacklistData = await resSoar.json();
         setSoarBlacklist(blacklistData);
         calculateSocAnalytics(blacklistData);
       }
       
-      const resHistory = await fetch("http://localhost:8000/api/v1/history/scans", { headers: secureHeaders });
+      const resHistory = await fetch("http://10.33.167.113:8000/api/v1/history/scans", { headers: secureHeaders });
       if (resHistory.ok) setScanHistory(await resHistory.json());
 
-      const resScore = await fetch("http://localhost:8000/api/v1/security-score", { headers: secureHeaders });
+      const resScore = await fetch("http://10.33.167.113:8000/api/v1/security-score", { headers: secureHeaders });
       if (resScore.ok) {
         const scoreJson = await resScore.json();
         setScoreData(scoreJson); 
@@ -314,7 +314,7 @@ export default function Home() {
   // 🔐 4. Secure Initial Security Score Trigger
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8000/api/v1/security-score", {
+    fetch("http://10.33.167.113:8000/api/v1/security-score", {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then((res) => {
@@ -350,7 +350,7 @@ export default function Home() {
     setActiveReportId(incidentId);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:8000/api/v1/soar/report/${incidentId}`, {
+      const res = await fetch(`http://10.33.167.113:8000/api/v1/soar/report/${incidentId}`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -405,7 +405,7 @@ export default function Home() {
     setDisconnecting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/v1/auth/gmail/disconnect", {
+      const res = await fetch("http://10.33.167.113:8000/api/v1/auth/gmail/disconnect", {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -427,7 +427,7 @@ export default function Home() {
   const handleConnectGmailAuthFlow = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/v1/auth/google-login", {
+      const res = await fetch("http://10.33.167.113:8000/api/v1/auth/google-login", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -444,7 +444,7 @@ export default function Home() {
     setIsScanning(true); setScanResult(null);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/v1/scan", {
+      const res = await fetch("http://10.33.167.113:8000/api/v1/scan", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -499,7 +499,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/v1/scan/screenshot-ocr", {
+      const res = await fetch("http://10.33.167.113:8000/api/v1/scan/screenshot-ocr", {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }, // Form-data needs NO manual Content-Type header
         body: formData,
@@ -531,7 +531,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8000/api/v1/bot/chat", {
+      const res = await fetch("http://10.33.167.113:8000/api/v1/bot/chat", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -1167,58 +1167,86 @@ export default function Home() {
               )}
 
               {activeTab === "sms" && (
-                <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="space-y-1 mb-6 pl-1">
-                    <div className="text-[10px] font-black text-cyan-400 tracking-widest uppercase">ECOSYSTEM OPERATIONAL WORKSPACE</div>
-                    <h1 className="text-3xl font-black tracking-tight text-white uppercase">SMS SECURITY</h1>
-                  </div>
+  <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-1 mb-6 pl-1">
+      <div className="text-[10px] font-black text-cyan-400 tracking-widest uppercase">ECOSYSTEM OPERATIONAL WORKSPACE</div>
+      <h1 className="text-3xl font-black tracking-tight text-white uppercase">SMS SECURITY</h1>
+    </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div onClick={() => setSmsFilter("ALL")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "ALL" ? "bg-cyan-950/40 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(99,102,241,0.05)] hover:shadow-[0_0_15px_rgba(99,102,241,0.15)]"}`}>
-                      <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-400"><ListFilter className="w-5 h-5" /></div>
-                      <div>
-                        <span className="text-xl font-black text-white block tracking-tight">{smsData.total_in_account}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.totalSms}</span>
-                      </div>
-                    </div>
+    {/* Metric Counter Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div onClick={() => setSmsFilter("ALL")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "ALL" ? "bg-cyan-950/40 border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(99,102,241,0.05)] hover:shadow-[0_0_15px_rgba(99,102,241,0.15)]"}`}>
+        <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-400"><ListFilter className="w-5 h-5" /></div>
+        <div>
+          <span className="text-xl font-black text-white block tracking-tight">{smsData.total_in_account}</span>
+          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.totalSms}</span>
+        </div>
+      </div>
 
-                    <div onClick={() => setSmsFilter("FRAUD")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "FRAUD" ? "bg-red-950/40 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(239,68,68,0.05)] hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"}`}>
-                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500"><AlertOctagon className="w-5 h-5" /></div>
-                      <div>
-                        <span className="text-xl font-black text-red-500 block leading-none tracking-tight">{smsData.harmful_count}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.fraudHits}</span>
-                      </div>
-                    </div>
+      <div onClick={() => setSmsFilter("FRAUD")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "FRAUD" ? "bg-red-950/40 border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(239,68,68,0.05)] hover:shadow-[0_0_15px_rgba(239,68,68,0.15)]"}`}>
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500"><AlertOctagon className="w-5 h-5" /></div>
+        <div>
+          <span className="text-xl font-black text-red-500 block leading-none tracking-tight">{smsData.harmful_count}</span>
+          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.fraudHits}</span>
+        </div>
+      </div>
 
-                    <div onClick={() => setSmsFilter("SAFE")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "SAFE" ? "bg-emerald-950/40 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(16,185,129,0.05)] hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"}`}>
-                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400"><CheckCircle2 className="w-5 h-5" /></div>
-                      <div>
-                        <span className="text-xl font-black text-emerald-400 block leading-none tracking-tight">{smsData.normal_count}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.safeClean}</span>
-                      </div>
-                    </div>
-                  </div>
+      <div onClick={() => setSmsFilter("SAFE")} className={`border p-4 rounded-2xl flex items-center space-x-4 cursor-pointer backdrop-blur-md shadow-lg transition-all duration-300 hover:-translate-y-1 ${smsFilter === "SAFE" ? "bg-emerald-950/40 border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.25)]" : "bg-[#080c1b]/60 border-indigo-500/10 shadow-[inset_0_0_15px_rgba(16,185,129,0.05)] hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]"}`}>
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400"><CheckCircle2 className="w-5 h-5" /></div>
+        <div>
+          <span className="text-xl font-black text-emerald-400 block leading-none tracking-tight">{smsData.normal_count}</span>
+          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1 block">{t.safeClean}</span>
+        </div>
+      </div>
+    </div>
 
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Simulated Threat SMS Stream Logs</h3>
-                    {filteredSmsLogs.map((log: any, idx: number) => (
-                      <div 
-                        key={idx} 
-                        className={`backdrop-blur-md bg-[#080c1b]/60 p-4 rounded-2xl flex items-center justify-between border-l-4 transition-all duration-300 ${
-                          log.is_harmful 
-                            ? "border-l-red-500 shadow-[0_0_15px_rgba(239,68,68,0.4)] border-red-500/60" 
-                            : "border-l-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)] border-emerald-500/60"
-                        }`}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <span className="text-[11px] text-slate-400 font-bold block">Sender: {log.sender}</span>
-                          <p className="text-xs text-white font-medium font-mono mt-1">{log.message}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+    {/* SMS Stream Logs Section */}
+    <div className="space-y-4">
+      <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Simulated Threat SMS Stream Logs</h3>
+      {filteredSmsLogs.map((log: any, idx: number) => {
+        // Yeh line check karegi agar backend se koi bhi variable mein time aa raha ho
+        const exactSmsTime = log.timestamp || log.time || log.created_at;
+
+        return (
+          <div 
+            key={idx} 
+            className={`backdrop-blur-md bg-[#080c1b]/60 p-4 rounded-2xl flex flex-col border-l-4 transition-all duration-300 ${
+              log.is_harmful 
+                ? "border-l-red-500 shadow-[0_0_15px_rgba(239,68,68,0.25)] border-red-500/60" 
+                : "border-l-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.25)] border-emerald-500/60"
+            }`}
+          >
+            {/* Top Row: Sender & Timestamp */}
+            <div className="flex justify-between items-center w-full border-b border-slate-800/40 pb-2 mb-2">
+              <span className="text-[11px] text-slate-400 font-bold">
+                Sender: <span className="font-mono text-cyan-400">{log.sender}</span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {exactSmsTime ? new Date(exactSmsTime).toLocaleString('en-IN') : "Simulated Log"}
+              </span>
+            </div>
+
+            {/* Middle Row: Message Text */}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-white font-medium font-mono tracking-wide mt-1 bg-black/20 p-2 rounded border border-slate-900/30 break-words">
+                {log.message}
+              </p>
+            </div>
+
+            {/* Bottom Row: Threat Indicator Status */}
+            <div className="mt-2 flex items-center">
+              <span className={`text-[9px] font-bold px-2 py-0.5 rounded tracking-wider uppercase ${
+                log.is_harmful ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400"
+              }`}>
+                {log.is_harmful ? "⚠️ THREAT DETECTED" : "✅ VERIFIED CLEAN"}
+              </span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+)}
 
               {activeTab === "history" && (
                 <div className="space-y-6 animate-in fade-in duration-200">

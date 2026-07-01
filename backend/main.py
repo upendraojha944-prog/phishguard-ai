@@ -46,14 +46,10 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"  # 🛡️ Browser ka built-in Anti-XSS filter active karne ke liye
     response.headers["Content-Security-Policy"] = "frame-ancestors 'none';"  # 🛡️ Kisi aur website ko aapka portal iframe mein embed karne se rokne ke liye
     return response
+# ✅ SAHI CODE (Isko copy-paste karein)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -95,12 +91,20 @@ class OTPVerify(BaseModel):
     email: EmailStr
     otp: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
 class BotQuery(BaseModel):
     question: str
 
 class IncomingSMS(BaseModel):
     sender: str
-    message_body: str
+    message: str
 
 class URLPayload(BaseModel):
     url: str
@@ -488,7 +492,41 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
-
+def send_reverse_pipeline_telegram_alert(sender_num: str, sms_body: str):
+    bot_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    
+    if not bot_token or not chat_id:
+        print("🚨 SOAR Warning: Telegram credentials missing in .env configuration nodes.")
+        return
+    
+    # 🛡️ Safe HTML Template Construction (Prevents link parsing crashes)
+    alert_message = (
+        "🚨 <b>PHISHGUARD CRITICAL ALERT</b> 🚨\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        "⚠️ <b>Threat Detected:</b> Inbound Smishing/Phishing Attempt\n"
+        "📱 <b>Attacker Source:</b> <code>{}</code>\n"
+        "⏰ <b>Incident Time:</b> <code>{}</code>\n\n"
+        "📝 <b>Intercepted Text Content:</b>\n"
+        "<i>{}</i>\n\n"
+        "🛡️ <b>SOAR MITIGATION ACTION:</b> Attacker IOC indicators successfully logged and isolated inside the Firewall database pool.\n\n"
+        "🛑 <b>CRITICAL DIRECTIVE:</b> <b>DO NOT click any links or input credentials!</b>"
+    ).format(sender_num, datetime.now().strftime('%Y-%m-%d %H:%M:%S IST'), sms_body)
+    
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": alert_message,
+        "parse_mode": "HTML"  # 👈 Markdown se badalkar HTML kiya taaki links crash na karein
+    }
+    
+    try:
+        res = requests.post(url, json=payload, timeout=10)
+        print(f"DEBUG: Reverse Pipeline Telegram Response Status: {res.status_code}")
+        if res.status_code != 200:
+            print(f"DEBUG: Telegram Error Details: {res.text}")
+    except Exception as e:
+        print(f"🚨 SOAR Failure: Reverse Pipeline Notification Delivery Crash: {e}")           
 # ======================================================================
 # 🔐 REGISTRATION AND JWT ACCESS API ROUTERS CONFIGURATION NODES
 # ======================================================================
@@ -563,9 +601,51 @@ def login_phishguard_analyst(request: Request, payload: UserLogin, db: Session =
             "email": user.email,
             "security_score": user.security_score or 100,
             "joined_date": user.created_at.isoformat() if user.created_at else None,
+            "permissions_accepted": False, # Initial status default to False for new session triggers
         }  
     }
+@app.post("/api/v1/auth/forgot-password")
+def forgot_password_endpoint(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(DBUser).filter(DBUser.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Email identity not found inside database tree.")
+    
+    otp = f"{secrets.randbelow(900000) + 100000}"
+    OTP_STORE[payload.email.lower()] = {
+        "otp": otp,
+        "expires_at": datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES),
+    }
+    
+    try:
+        message = EmailMessage()
+        message["Subject"] = "PhishGuard AI Password Reset OTP"
+        message["From"] = SMTP_FROM
+        message["To"] = payload.email
+        message.set_content(f"Your security reset OTP verification key is {otp}. Valid for 10 minutes.")
 
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(message)
+        return {"status": "success", "message": "Reset OTP dispatch successful! Check email."}
+    except Exception as exc:
+        OTP_STORE.pop(payload.email.lower(), None)
+        raise HTTPException(status_code=500, detail=f"Mail pipeline gateway crash: {str(exc)}")
+
+@app.post("/api/v1/auth/reset-password")
+def reset_password_endpoint(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    # Verify via the core secure token comparator
+    if not verify_registration_otp(payload.email, payload.otp):
+        raise HTTPException(status_code=400, detail="Invalid or expired verification OTP key.")
+        
+    user = db.query(DBUser).filter(DBUser.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User target profile mismatch.")
+        
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    OTP_STORE.pop(payload.email.lower(), None)
+    return {"status": "success", "message": "Password identity signature updated successfully."}
 # 📬 GMAIL OAUTH FLOW ENDPOINTS
 @app.get("/api/v1/auth/google-login")
 def initiate_google_auth_flow(current_user: dict = Depends(verify_jwt_token)):
@@ -612,7 +692,7 @@ def google_auth_callback_handler(code: str):
         messages_list = messages_result.get('messages', [])
         total_messages = len(messages_list)
         
-        results = service.users().messages().list(userId="me", maxResults=15, q="is:unread").execute()
+        results = service.users().messages().list(userId="me", maxResults=15).execute()
         unread_list = results.get("messages", [])
         
         scanned_emails_payload = []
@@ -716,19 +796,85 @@ def disconnect_google_account(db: Session = Depends(get_db), current_user: dict 
         raise HTTPException(status_code=500, detail=f"Failed to disconnect: {str(e)}")
 
 # 📱 SMS INTERCEPT PIPELINE
+# 📱 SMS INTERCEPT PIPELINE
 @app.post("/api/v1/automation/sms/intercept")
 def intercept_incoming_device_sms(payload: IncomingSMS, db: Session = Depends(get_db)):
     try:
-        with open(SMS_CACHE_FILE, "r") as f:
-            data = json.load(f)
-        sms_text = payload.message_body.lower()
-        is_fraud = any(term in sms_text for term in ["lottery", "win", "gift card", "reward", "luck", "free cash", "click link", "ebanking", "verify", "suspended", "blocked", "kyc"])
+        # 1. Read existing cache data safely
+        if os.path.exists(SMS_CACHE_FILE):
+            with open(SMS_CACHE_FILE, "r") as f:
+                data = json.load(f)
+        else:
+            data = {"total_in_account": 0, "harmful_count": 0, "normal_count": 0, "logs": []}
+            
+        sms_text = payload.message.lower()
+        print(f"DEBUG: SMS content received: {sms_text}")
         
+        # LEVEL 1: Fast Keyword Heuristic
+        fraud_keywords = ["lottery", "win", "gift card", "reward", "luck", "free cash", "click link", "ebanking", "verify", "suspended", "blocked", "kyc", "pan", "aadhar", "account"]
+        is_fraud = any(term in sms_text for term in fraud_keywords)
+        
+        # LEVEL 2: Deep AI Analysis
+        if not is_fraud:
+            score, verdict, summary = evaluate_extracted_text(sms_text)
+            if score > 50:
+                is_fraud = True
+        
+        # 2. Update stats parameters (CLEANED: Single execution mapping)
         data["total_in_account"] += 1
-        return {"status": "success"}
+        if is_fraud:
+            data["harmful_count"] += 1
+            # 🔐 LEVEL 8: Trigger SOAR Incident Remediation
+            trigger_soar_incident_remediation(payload.message, f"SMS Gateway ({payload.sender})", db)
+            # 🚀 SOAR RESPONSE ACTIVE PROTOCOL: Execute Reverse Pipeline Telegram Push Alert
+            send_reverse_pipeline_telegram_alert(payload.sender, payload.message)
+        else:
+            data["normal_count"] += 1    
+            
+        # 🚀 FIX 1: Added ISO Timestamp structure for frontend timeline alignment
+        new_log = {
+            "sender": payload.sender,
+            "message": payload.message,
+            "is_harmful": is_fraud,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        if "logs" not in data:
+            data["logs"] = []
+        data["logs"].insert(0, new_log)
+        
+        # 🚀 FIX 2: Security Score Metric Database Table Entry Insertion
+        try:
+            db_sms_log = models.SMSLog(
+                sender=payload.sender,
+                message=payload.message,
+                is_harmful=is_fraud,
+                timestamp=datetime.utcnow()
+            )
+            db.add(db_sms_log)
+            db.commit()
+        except Exception as db_err:
+            print(f"Database Core SMSLog insertion skipped: {db_err}")
+            db.rollback()
+        
+        # 4. Save history timeline log to Database
+        save_scan_history(
+            db=db,
+            scan_type="SMS_THREAT",
+            title=f"Inbound SMS from {payload.sender}",
+            source="Mobile Hook Gateway (AI-Hybrid)",
+            verdict="Threat Flagged" if is_fraud else "Safe / Clean",
+            risk_score=94 if is_fraud else 8,
+            summary=payload.message
+        )
+        
+        # 5. Permanent Write-back to JSON cache memory
+        with open(SMS_CACHE_FILE, "w") as f:
+            json.dump(data, f)
+            
+        return {"status": "success", "analysed_as_fraud": is_fraud}
     except Exception as e:
+        print(f"SMS Intercept Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/api/v1/vt/url")
 def virustotal_url_reputation(payload: URLPayload):
     scan_response = requests.post(
@@ -942,7 +1088,6 @@ async def scan_screenshot_ocr_intel(request: Request, file: UploadFile = File(..
   except Exception as e:
         raise HTTPException(status_code=500, detail=f"OCR Runtime Thread Failure: {str(e)}")
 
-# 🤖 🌐 3. Secure Adaptive AI Conversational Engine Route
 # 🤖 🌐 3. Secure Adaptive AI Conversational Engine Route
 @app.post("/api/v1/bot/chat")
 @limiter.limit("10/minute") # LEVEL 3: Throttling automated loop spams
