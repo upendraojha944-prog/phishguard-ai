@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # 2. Force load secret key from env, fallback only for local dev
-SECRET_KEY = "my_super_secret_random_key_12345"
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_for_safety_9a4b8c")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 

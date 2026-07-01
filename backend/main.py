@@ -66,8 +66,8 @@ engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=Tr
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Cryptographic Keys
-SECRET_KEY = os.getenv("JWT_SECRET", "phishguard_secure_key_123")
+# ✅ SAHI CODE (Isko replace karo)
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_for_safety_9a4b8c")
 ALGORITHM = "HS256"
 
 # 🔐 OAuth2 Bearer Token Extraction Scheme
@@ -182,7 +182,7 @@ ensure_user_schema()
 
 CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8000/api/v1/auth/callback")
+REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "https://phishguard-backend-j35c.onrender.com/api/v1/auth/callback")
 SCOPES = "https://www.googleapis.com/auth/gmail.readonly"
 SMS_CACHE_FILE = "live_sms_cache.json"
 MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")

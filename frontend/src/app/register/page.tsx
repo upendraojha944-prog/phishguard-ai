@@ -5,7 +5,8 @@ import Link from "next/link";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
 
-const API_BASE_URL = "http://localhost:8000";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
 
 type ApiErrorResponse = { detail?: string };
 
