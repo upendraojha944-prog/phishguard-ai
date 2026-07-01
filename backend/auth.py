@@ -1,28 +1,25 @@
 import bcrypt
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone # 1. Added timezone
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_for_safety_9a4b8c")
+# 2. Force load secret key from env, fallback only for local dev
+SECRET_KEY = "my_super_secret_random_key_12345"
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
 
-# 🔐 PURE MODERN BCRYPT CONTROLLER
 def get_password_hash(password: str) -> str:
-    """Generates a secure cryptographic salt and hashes the plain text password string."""
-    # Convert string to bytes
+    """Generates a secure cryptographic salt and hashes the password."""
     password_bytes = password.encode('utf-8')
-    # Generate salt and hash
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password_bytes, salt)
-    # Return as string to store in SQLite string column
     return hashed.decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Safely verifies raw login input string bytes against stored database hashes."""
+    """Verifies raw password against stored database hash."""
     try:
         return bcrypt.checkpw(
             plain_password.encode('utf-8'),
@@ -31,17 +28,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except Exception:
         return False
 
-
-# 🎟️ JWT JSON WEB TOKEN GENERATOR LAYER
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
-    """Generates an encrypted temporary session passport key for authentication."""
+    """Generates an encrypted temporary session passport key."""
     to_encode = data.copy()
     
+    # 3. Modern timezone-aware datetime usage
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         
     to_encode.update({"exp": expire})
+    
+    # Generate the JWT
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
