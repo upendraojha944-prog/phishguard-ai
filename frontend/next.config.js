@@ -1,13 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    // TypeScript errors ko build ke waqt ignore karega
+    // Build ke waqt TypeScript errors ignore karega
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // ESLint warning/errors ko build ke waqt ignore karega
-    ignoreDuringBuilds: true,
-  },
+  // ESLint configuration block yahan se hata diya gaya hai
+  // taaki 'Invalid next.config.js options' error na aaye.
 };
 
 module.exports = nextConfig;

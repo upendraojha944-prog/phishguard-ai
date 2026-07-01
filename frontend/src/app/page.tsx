@@ -12,7 +12,7 @@ export default function Home() {
   const [urlInput, setUrlInput] = useState("");
   const [scanResult, setScanResult] = useState<any>(null);
   const [isScanning, setIsScanning] = useState(false);
-  
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
   const [borderEffect, setBorderEffect] = useState("border-blue-500/30");
   const [isSplashLoading, setIsSplashLoading] = useState(true);
   const [scoreData, setScoreData] = useState({ 
@@ -36,7 +36,6 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
       const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
         method: "POST",
         headers: { 
@@ -71,7 +70,6 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
       const res = await fetch(`${baseURL}/api/v1/scan`, {
         method: "POST",
         headers: { 
@@ -152,10 +150,15 @@ export default function Home() {
     .toUpperCase();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login");
-  };
+    // 1. Local storage se sab kuch saaf karo
+    localStorage.clear(); 
+    
+    // 2. Session storage bhi saaf karo
+    sessionStorage.clear();
+    
+    // 3. Force refresh ke sath login page par bhejo
+    window.location.href = "/login";
+};
 
   const [notifications, setNotifications] = useState<Array<{ id: string, type: string, title: string, message: string, time: string, read: boolean }>>([]);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
@@ -264,8 +267,11 @@ export default function Home() {
 
   // 🔐 3. Secure Core Polling Engine (Metrics, Blacklists, Scores)
   const fetchLiveEcosystemMetrics = async () => {
+    // 1. Yahan baseURL ko define karo!
+    
+    
     try {
-      const token = localStorage.getItem("token"); // 🔐 Token extraction
+      const token = localStorage.getItem("token"); 
       const secureHeaders = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -315,19 +321,36 @@ export default function Home() {
 
   // 🔐 4. Secure Initial Security Score Trigger
   // 🔐 4. Secure Initial Security Score Trigger
+  // 🔐 4. Secure Initial Security Score Trigger
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+    if (!token) {
+      router.push("/login"); // Agar token hi nahi hai, toh login par bhej do
+      return;
+    }
+
     fetch(`${baseURL}/api/v1/security-score`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Server response not OK");
-        return res.json(); // 👈 FIXED: Extra bracket ') ' hata kar ';' laga diya hai
+      .then(async (res) => {
+        if (!res.ok) {
+           const errorData = await res.text();
+           throw new Error(`Server returned ${res.status}: ${errorData}`);
+        }
+        return res.json();
       })
       .then((data) => setScoreData(data))
-      .catch((err) => console.error("Error fetching score:", err));
-  }, []);
+      .catch((err) => {
+        // ✅ Yahan woh logic rakho jo maine bataya tha
+        if (err.message.includes("401")) {
+          alert("Session expired. Please login again.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user"); // User data bhi saaf kar do
+          router.push("/login");
+        }
+        console.error("Error fetching score:", err);
+      });
+  }, [router]); // router ko dependency mein rakho
 
   const calculateSocAnalytics = (items: any[]) => {
     // 🔐 FIXED: Galti se yahan character glitch ho gaya tha, ab proper variables hain
@@ -448,7 +471,7 @@ export default function Home() {
     setIsScanning(true); setScanResult(null);
     try {
       const token = localStorage.getItem("token");
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      
       const res = await fetch(`${baseURL}/api/v1/scan`, {
         method: "POST",
         headers: { 
@@ -536,7 +559,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token");
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
+      
       const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
         method: "POST",
         headers: { 
