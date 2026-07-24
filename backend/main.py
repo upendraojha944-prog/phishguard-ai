@@ -46,14 +46,24 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"  # 🛡️ Browser ka built-in Anti-XSS filter active karne ke liye
     response.headers["Content-Security-Policy"] = "frame-ancestors 'none';"  # 🛡️ Kisi aur website ko aapka portal iframe mein embed karne se rokne ke liye
     return response
-# ✅ SAHI CODE (Isko copy-paste karein)
+def get_allowed_origins():
+    raw_origins = os.getenv(
+        "ALLOWED_ORIGINS",
+        "http://localhost:3000,https://phishguard-ai.vercel.app",
+    )
+    return [origin.strip().rstrip("/") for origin in raw_origins.split(",") if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "phishguard-backend"}
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_URL = os.getenv(
@@ -67,7 +77,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # ✅ SAHI CODE (Isko replace karo)
-SECRET_KEY = os.getenv("SECRET_KEY", "fallback_secret_for_safety_9a4b8c")
+SECRET_KEY = os.getenv("SECRET_KEY") or os.getenv("JWT_SECRET") or "fallback_secret_for_safety_9a4b8c"
 ALGORITHM = "HS256"
 
 # 🔐 OAuth2 Bearer Token Extraction Scheme
@@ -160,6 +170,7 @@ class DBAuditLog(Base):
     ip_address = Column(String, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
 Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 def ensure_user_schema():
     inspector = inspect(engine)
@@ -846,7 +857,7 @@ def intercept_incoming_device_sms(payload: IncomingSMS, db: Session = Depends(ge
         try:
             db_sms_log = models.SMSLog(
                 sender=payload.sender,
-                message=payload.message,
+                message_body=payload.message,
                 is_harmful=is_fraud,
                 timestamp=datetime.utcnow()
             )

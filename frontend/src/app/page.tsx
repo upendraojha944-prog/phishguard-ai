@@ -6,13 +6,13 @@ import { Shield, Mail, Smartphone, RefreshCw, Sparkles, Terminal, Activity, Shie
 import Sidebar from "./components/Sidebar";
 import UrlScanner from "./components/UrlScanner";
 import BotWidget from "./components/BotWidget";
+import { apiUrl } from "./lib/api";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "analytics" | "url" | "ocr" | "email" | "sms" | "soar" | "bot" | "profile" | "history">("dashboard");
   const [urlInput, setUrlInput] = useState("");
   const [scanResult, setScanResult] = useState<any>(null);
   const [isScanning, setIsScanning] = useState(false);
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || "https://phishguard-backend-j35c.onrender.com";
   const [borderEffect, setBorderEffect] = useState("border-blue-500/30");
   const [isSplashLoading, setIsSplashLoading] = useState(true);
   const [scoreData, setScoreData] = useState({ 
@@ -36,7 +36,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
+      const res = await fetch(apiUrl("/api/v1/bot/chat"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token"); 
-      const res = await fetch(`${baseURL}/api/v1/scan`, {
+      const res = await fetch(apiUrl("/api/v1/scan"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -267,9 +267,6 @@ export default function Home() {
 
   // 🔐 3. Secure Core Polling Engine (Metrics, Blacklists, Scores)
   const fetchLiveEcosystemMetrics = async () => {
-    // 1. Yahan baseURL ko define karo!
-    
-    
     try {
       const token = localStorage.getItem("token"); 
       const secureHeaders = {
@@ -277,7 +274,7 @@ export default function Home() {
         "Content-Type": "application/json"
       };
 
-      const resEmail = await fetch(`${baseURL}/api/v1/automation/gmail/inbox`, { headers: secureHeaders });  
+      const resEmail = await fetch(apiUrl("/api/v1/automation/gmail/inbox"), { headers: secureHeaders });  
       if (resEmail.ok) {
         const emailJson = await resEmail.json();
         if (prevHarmfulEmails.current !== 0 && emailJson.harmful_count > prevHarmfulEmails.current) {
@@ -287,7 +284,7 @@ export default function Home() {
         setGmailData(emailJson);
       }
       
-      const resSms = await fetch(`${baseURL}/api/v1/automation/sms/logs`, { headers: secureHeaders });
+      const resSms = await fetch(apiUrl("/api/v1/automation/sms/logs"), { headers: secureHeaders });
 
       if (resSms.ok) {
         const smsJson = await resSms.json();
@@ -298,17 +295,17 @@ export default function Home() {
         setSmsData(smsJson);
       }
 
-      const resSoar = await fetch(`${baseURL}/api/v1/soar/blacklist`, { headers: secureHeaders });
+      const resSoar = await fetch(apiUrl("/api/v1/soar/blacklist"), { headers: secureHeaders });
       if (resSoar.ok) {
         const blacklistData = await resSoar.json();
         setSoarBlacklist(blacklistData);
         calculateSocAnalytics(blacklistData);
       }
       
-      const resHistory = await fetch(`${baseURL}/api/v1/history/scans`, { headers: secureHeaders });
+      const resHistory = await fetch(apiUrl("/api/v1/history/scans"), { headers: secureHeaders });
       if (resHistory.ok) setScanHistory(await resHistory.json());
 
-      const resScore = await fetch(`${baseURL}/api/v1/security-score`, { headers: secureHeaders });
+      const resScore = await fetch(apiUrl("/api/v1/security-score"), { headers: secureHeaders });
       if (resScore.ok) {
         const scoreJson = await resScore.json();
         setScoreData(scoreJson); 
@@ -329,7 +326,7 @@ export default function Home() {
       return;
     }
 
-    fetch(`${baseURL}/api/v1/security-score`, {
+    fetch(apiUrl("/api/v1/security-score"), {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(async (res) => {
@@ -377,7 +374,7 @@ export default function Home() {
     setActiveReportId(incidentId);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${baseURL}/api/v1/soar/report/${incidentId}`, {
+      const res = await fetch(apiUrl(`/api/v1/soar/report/${incidentId}`), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -432,7 +429,7 @@ export default function Home() {
     setDisconnecting(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${baseURL}/api/v1/auth/gmail/disconnect`, {
+      const res = await fetch(apiUrl("/api/v1/auth/gmail/disconnect"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -454,7 +451,7 @@ export default function Home() {
   const handleConnectGmailAuthFlow = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${baseURL}/api/v1/auth/google-login`, {
+      const res = await fetch(apiUrl("/api/v1/auth/google-login"), {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -472,7 +469,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem("token");
       
-      const res = await fetch(`${baseURL}/api/v1/scan`, {
+      const res = await fetch(apiUrl("/api/v1/scan"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -527,7 +524,7 @@ export default function Home() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://10.33.167.113:8000/api/v1/scan/screenshot-ocr", {
+      const res = await fetch(apiUrl("/api/v1/scan/screenshot-ocr"), {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }, // Form-data needs NO manual Content-Type header
         body: formData,
@@ -560,7 +557,7 @@ export default function Home() {
     try {
       const token = localStorage.getItem("token");
       
-      const res = await fetch(`${baseURL}/api/v1/bot/chat`, {
+      const res = await fetch(apiUrl("/api/v1/bot/chat"), {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",

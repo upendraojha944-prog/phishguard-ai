@@ -4,9 +4,7 @@ import { Shield, User, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, BadgeCheck,
 import Link from "next/link";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
-
-
-const API_BASE_URL = "https://phishguard-backend-j35c.onrender.com";
+import { apiUrl } from "../lib/api";
 
 type ApiErrorResponse = { detail?: string };
 
@@ -40,7 +38,7 @@ export default function RegisterPage() {
 
     setOtpLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/v1/auth/send-otp`, { email: formData.email });
+      await axios.post(apiUrl("/api/v1/auth/send-otp"), { email: formData.email });
       setIsOtpSent(true);
       setIsVerified(false);
       setMessage("OTP email par send ho gaya hai.");
@@ -62,7 +60,7 @@ export default function RegisterPage() {
 
     setVerifyLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/v1/auth/verify-otp`, {
+      await axios.post(apiUrl("/api/v1/auth/verify-otp"), {
         email: formData.email,
         otp: formData.otp,
       });
@@ -93,7 +91,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/v1/auth/register`, {
+      await axios.post(apiUrl("/api/v1/auth/register"), {
         name: formData.name,
         email: formData.email,
         password: formData.password,

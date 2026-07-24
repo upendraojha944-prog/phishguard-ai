@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation"; 
 import { Shield, Lock, Mail, ArrowRight, Cpu } from "lucide-react";
 import Link from "next/link";
+import { apiUrl } from "../lib/api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -30,7 +31,7 @@ export default function Login() {
     setIsAuthenticating(true); 
 
     try {
-      const res = await fetch("https://phishguard-backend-j35c.onrender.com/api/v1/auth/login", {
+      const res = await fetch(apiUrl("/api/v1/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -63,7 +64,7 @@ export default function Login() {
     setIsAuthenticating(true);
 
     try {
-      const res = await fetch("https://phishguard-backend-j35c.onrender.com/api/v1/auth/forgot-password", {
+      const res = await fetch(apiUrl("/api/v1/auth/forgot-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: resetEmail }),
@@ -92,7 +93,7 @@ export default function Login() {
 
     try {
       // Connecting directly to your core verification node
-      const res = await fetch("https://phishguard-backend-j35c.onrender.com/api/v1/auth/verify-otp", {
+      const res = await fetch(apiUrl("/api/v1/auth/verify-otp"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: resetEmail, otp: resetOtp }),
@@ -126,7 +127,7 @@ export default function Login() {
     setIsAuthenticating(true);
 
     try {
-      const res = await fetch("https://phishguard-backend-j35c.onrender.com/api/v1/auth/reset-password", {
+      const res = await fetch(apiUrl("/api/v1/auth/reset-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
