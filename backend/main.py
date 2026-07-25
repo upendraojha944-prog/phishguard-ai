@@ -1004,8 +1004,11 @@ def virustotal_hash_reputation(payload: HashPayload, db: Session = Depends(get_d
 
 @app.get("/api/v1/automation/sms/logs")
 def get_native_android_sms_logs(current_user: dict = Depends(verify_jwt_token)):
-    with open(SMS_CACHE_FILE, "r") as f: return json.load(f)
-
+    try:
+        with open(SMS_CACHE_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
 # ======================================================================
 # 🚨 LOCKED HIGH-RESOURCE SCANNERS (RATE LIMITING + BEARER TOKENS) 🚨
 # ======================================================================
