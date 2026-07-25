@@ -1001,14 +1001,14 @@ def virustotal_hash_reputation(payload: HashPayload, db: Session = Depends(get_d
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/api/v1/automation/sms/logs")
 def get_native_android_sms_logs(current_user: dict = Depends(verify_jwt_token)):
     try:
         with open(SMS_CACHE_FILE, "r") as f:
             return json.load(f)
-    except FileNotFoundError:
+    except Exception:  # Yeh line duniya ke har error ko rok legi
         return []
+
 # ======================================================================
 # 🚨 LOCKED HIGH-RESOURCE SCANNERS (RATE LIMITING + BEARER TOKENS) 🚨
 # ======================================================================
