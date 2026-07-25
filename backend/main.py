@@ -49,7 +49,7 @@ async def add_security_headers(request: Request, call_next):
 def get_allowed_origins():
     raw_origins = os.getenv(
         "ALLOWED_ORIGINS",
-        "http://localhost:3000,https://phishguard-ai.vercel.app",
+        "http://localhost:3000,https://phishguard-ai.vercel.app,https://phishguard-ai-jntc.vercel.app",
     )
     return [origin.strip().rstrip("/") for origin in raw_origins.split(",") if origin.strip()]
 
@@ -198,6 +198,9 @@ SCOPES = "https://www.googleapis.com/auth/gmail.readonly"
 SMS_CACHE_FILE = "live_sms_cache.json"
 MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "vectorizer.pkl")
+
+def empty_sms_cache():
+    return {"total_in_account": 0, "harmful_count": 0, "normal_count": 0, "logs": []}
 
 try:
     with open(MODEL_PATH, "rb") as f:
@@ -816,7 +819,7 @@ def intercept_incoming_device_sms(payload: IncomingSMS, db: Session = Depends(ge
             with open(SMS_CACHE_FILE, "r") as f:
                 data = json.load(f)
         else:
-            data = {"total_in_account": 0, "harmful_count": 0, "normal_count": 0, "logs": []}
+            data = empty_sms_cache()
             
         sms_text = payload.message.lower()
         print(f"DEBUG: SMS content received: {sms_text}")
@@ -1004,10 +1007,12 @@ def virustotal_hash_reputation(payload: HashPayload, db: Session = Depends(get_d
 @app.get("/api/v1/automation/sms/logs")
 def get_native_android_sms_logs(current_user: dict = Depends(verify_jwt_token)):
     try:
+        if not os.path.exists(SMS_CACHE_FILE):
+            return empty_sms_cache()
         with open(SMS_CACHE_FILE, "r") as f:
             return json.load(f)
-    except Exception:  # Yeh line duniya ke har error ko rok legi
-        return []
+    except Exception:
+        return empty_sms_cache()
 
 # ======================================================================
 # 🚨 LOCKED HIGH-RESOURCE SCANNERS (RATE LIMITING + BEARER TOKENS) 🚨

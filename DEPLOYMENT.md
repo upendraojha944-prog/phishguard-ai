@@ -10,7 +10,7 @@ Use these settings for the `backend` service:
 
 Set these environment variables in Render:
 
-- `ALLOWED_ORIGINS`: your Vercel URL, for example `https://your-vercel-app.vercel.app`
+- `ALLOWED_ORIGINS`: your Vercel URL, for example `https://phishguard-ai-jntc.vercel.app`
 - `SECRET_KEY`: a long random secret. `JWT_SECRET` is also supported for compatibility.
 - `GOOGLE_REDIRECT_URI`: `https://your-render-backend.onrender.com/api/v1/auth/callback`
 - `DATABASE_URL`: optional, but recommended for production if you use PostgreSQL.
