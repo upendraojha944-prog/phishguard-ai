@@ -12,6 +12,7 @@ Set these environment variables in Render:
 
 - `ALLOWED_ORIGINS`: your Vercel URL, for example `https://phishguard-ai-jntc.vercel.app`
 - `SECRET_KEY`: a long random secret. `JWT_SECRET` is also supported for compatibility.
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: `43200` for 30-day sessions.
 - `GOOGLE_REDIRECT_URI`: `https://your-render-backend.onrender.com/api/v1/auth/callback`
 - `DATABASE_URL`: optional, but recommended for production if you use PostgreSQL.
 - `GEMINI_API_KEY`, `VT_API_KEY`, `SMTP_USER`, `SMTP_PASSWORD`, and Google OAuth keys as needed.
