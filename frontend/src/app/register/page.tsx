@@ -37,13 +37,13 @@ export default function RegisterPage() {
     }
 
     setOtpLoading(true);
+    setIsOtpSent(true);
+    setIsVerified(false);
     try {
-      await axios.post(apiUrl("/api/v1/auth/send-otp"), { email: formData.email });
-      setIsOtpSent(true);
-      setIsVerified(false);
-      setMessage("OTP email par send ho gaya hai.");
+      const res = await axios.post(apiUrl("/api/v1/auth/send-otp"), { email: formData.email });
+      setMessage(res.data?.message || "OTP generated. Email ya backend terminal check karo.");
     } catch (err: unknown) {
-      setError(getErrorMessage(err, "OTP send nahi ho paya."));
+      setError(getErrorMessage(err, "OTP request fail hua, lekin OTP box open hai. Backend terminal check karo."));
     } finally {
       setOtpLoading(false);
     }

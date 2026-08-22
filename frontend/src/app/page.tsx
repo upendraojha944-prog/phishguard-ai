@@ -316,39 +316,6 @@ export default function Home() {
     }
   };
 
-  // 🔐 4. Secure Initial Security Score Trigger
-  // 🔐 4. Secure Initial Security Score Trigger
-  // 🔐 4. Secure Initial Security Score Trigger
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login"); // Agar token hi nahi hai, toh login par bhej do
-      return;
-    }
-
-    fetch(apiUrl("/api/v1/security-score"), {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-           const errorData = await res.text();
-           throw new Error(`Server returned ${res.status}: ${errorData}`);
-        }
-        return res.json();
-      })
-      .then((data) => setScoreData(data))
-      .catch((err) => {
-        // ✅ Yahan woh logic rakho jo maine bataya tha
-        if (err.message.includes("401")) {
-          alert("Session expired. Please login again.");
-          localStorage.removeItem("token");
-          localStorage.removeItem("user"); // User data bhi saaf kar do
-          router.push("/login");
-        }
-        console.error("Error fetching score:", err);
-      });
-  }, [router]); // router ko dependency mein rakho
-
   const calculateSocAnalytics = (items: any[]) => {
     // 🔐 FIXED: Galti se yahan character glitch ho gaya tha, ab proper variables hain
     let crit = 0, hg = 0, md = 0;
@@ -478,7 +445,15 @@ export default function Home() {
         body: JSON.stringify({ url: urlInput })
       });
       if (!res.ok) {
-        throw new Error(`Server returned ${res.status}`);
+        const errorText = await res.text();
+        if (res.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          alert("Session expired. Please login again.");
+          router.push("/login");
+          return;
+        }
+        throw new Error(`Server returned ${res.status}: ${errorText}`);
       }
 
       const data = await res.json();
@@ -538,11 +513,13 @@ export default function Home() {
         else { setBorderEffect("malicious"); setTimeout(() => setBorderEffect("none"), 4000); }
         fetchLiveEcosystemMetrics();
       } else {
-        setIsOcrScanning(false);
-      }
-    } catch (err) {
-      setIsOcrScanning(false);
-    }
+  setIsOcrScanning(false);
+  alert("OCR scan failed. Check if python-multipart is installed.");
+}
+} catch (err) {
+  setIsOcrScanning(false);
+  console.error("OCR Scan Exception:", err);
+}
   };
 
   // 🔐 10. Secure Main AI Core Bot Interface Channel
