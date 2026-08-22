@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🛡️ PhishGuard AI: Unified Threat Detection & Automated SOAR Platform
 
-## Getting Started
+<div align="center">
 
-First, run the development server:
+[![Python](https://img.shields.io/badge/Python-3.12%20%7C%20FastAPI-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.2%20%7C%20TypeScript-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![SQLite](https://img.shields.io/badge/Database-SQLite%20%7C%20Persistent-cyan?style=for-the-badge&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![License](https://img.shields.io/badge/License-MIT-emerald?style=for-the-badge)](LICENSE)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+</div>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Overview
+**PhishGuard AI** is a cutting-edge, full-stack cybersecurity platform engineered to detect, analyze, and quarantine multi-vector phishing threats in real time. Moving beyond traditional URL-only filters, it provides automated security operations center (SOC) capabilities including **Image OCR Forensics**, **Live Communication Stream Ingestion (Gmail/SMS)**, and an **Automated SOAR Firewall**.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📽️ Live Demonstration
+<div align="center">
+  <img src="https://github.com/upendraojha944-prog/phishguard-backend/blob/main/Video%20Project.mp4" alt="PhishGuard AI Demo" width="100%"/>
+</div>
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ✨ Key Architectural Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* **🌐 Real-Time URL Sandbox & Heuristics:** Instant URL threat indexing, domain parsing, and risk scoring engine powered by FastAPI.
+* **👁️ Computer Vision OCR Threat Parser:** Integrates *EasyOCR* and *OpenCV* to analyze raw screenshot captures (WhatsApp/SMS lures), extract hidden payloads, and decode multi-lingual text (English, Hindi, Hinglish).
+* **🛡️ Automated SOAR Firewall:** Instant firewall blacklisting, IOC categorization (*Credential Harvesting, Malware Distribution, Financial Scams*), and dynamic quarantine controls.
+* **📊 Comprehensive Incident Reporting:** Real-time metrics tracking, automated audit trail compilation, and one-click Executive/CSV report exports.
+* **💬 Multi-Lingual AI Security Copilot:** Interactive security chatbot supporting adaptive linguistic modes for SOC analysts.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* **Backend:** Python, FastAPI, Uvicorn, SQLAlchemy, PyTorch, EasyOCR, OpenCV, Google Generative AI, JWT Auth.
+* **Frontend:** Next.js (App Router), TypeScript, TailwindCSS, Lucide React Icons.
+* **Database & Security:** SQLite (Persistent absolute path configuration), Bcrypt Password Hashing, Secure Tokenized Authorization.
+
+---
+
+## ⚙️ Local Installation & Setup
+
+1. **Clone the Repository:**
+   ```bash
+   git clone [https://github.com/upendraojha944-prog/phishguard-ai.git](https://github.com/upendraojha944-prog/phishguard-ai.git)
+   cd phishguard-ai

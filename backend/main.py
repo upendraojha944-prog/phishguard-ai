@@ -403,7 +403,7 @@ def predict_url_with_ai(url: str):
 
     try:
         genai.configure(api_key=raw_key.strip())
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-3.5-flash')
         
         prompt = f"""Act as a Cybersecurity Phishing URL Analyzer. 
         Analyze this URL for phishing, malware, or suspicious intent: '{url}'.
@@ -462,7 +462,7 @@ def evaluate_extracted_text(text: str):
 
     try:
         genai.configure(api_key=raw_key.strip())
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-3.5-flash')
         
         prompt = f"""Act as an elite SOC Analyst. Analyze this text extracted from a user's screenshot/SMS: 
         '{text}'
@@ -1207,7 +1207,7 @@ def security_ai_bot_conversational_engine(request: Request, payload: BotQuery, d
 
     try:
         genai.configure(api_key=raw_key.strip())
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-3.5-flash')
         
         system_prompt = f"""You are PhishGuard AI, an elite cybersecurity expert and SOC Analyst. 
         Your job is to analyze cyber threats, phishing links, malware, and firewall rules.
@@ -1311,7 +1311,7 @@ def generate_ai_incident_report(incident_id: str, db: Session = Depends(get_db),
     if raw_key:
         try:
             genai.configure(api_key=raw_key.strip())
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-3.5-flash')
             
             prompt = f"""Write a highly professional and detailed Cybersecurity Forensic Incident Report. 
             Use the following threat metadata:
